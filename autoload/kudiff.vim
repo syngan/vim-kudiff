@@ -29,6 +29,7 @@ function! s:print_error(msg) " {{{
 endfunction " }}}
 
 function! s:exit() " {{{
+  call kudiff#clear()
   silent! only!
 endfunction " }}}
 
@@ -84,8 +85,10 @@ function! kudiff#do_replace() " {{{
 
   " 実行. 後ろから.
   " ここでエラーがでたらもうしらんよ.
-  tabnew
+  "
   let regbak = [getreg('"'), getregtype('"')]
+  let posbak = getpos('.')
+  tabnew
   try
     let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
     for i in range(2)
@@ -101,7 +104,7 @@ function! kudiff#do_replace() " {{{
       let df = d.first + len(lines) - 1 - d.last
       let d.last = d.first + len(lines) - 1
       let d.str = lines
-      if i == 1
+      if i == 1 && s:diff[s:now[0]].bufnr == s:diff[s:now[1]].bufnr
         let s:diff[s:now[ids[0]]].first += df
         let s:diff[s:now[ids[0]]].last += df
       endif
@@ -111,6 +114,7 @@ function! kudiff#do_replace() " {{{
   finally
     call setreg('"', regbak[0], regbak[1])
     :quit
+    call setpos('.', posbak)
   endtry
 
   diffoff!
@@ -132,15 +136,13 @@ function! kudiff#show(d1, d2) " {{{
       return -1
     endif
   endfor
-  if s:diff[a:d1].bufnr != s:diff[a:d2].bufnr
-    call s:print_error(':vimdiff should be used')
-    return
-  endif
+
   " ku に重複があるときは未対応
-  if s:diff[a:d1].first <= s:diff[a:d2].last &&
+  if s:diff[a:d1].bufnr == s:diff[a:d2].bufnr && (
+  \  s:diff[a:d1].first <= s:diff[a:d2].last &&
   \  s:diff[a:d2].first <= s:diff[a:d1].last ||
   \  s:diff[a:d1].first >= s:diff[a:d2].last &&
-  \  s:diff[a:d2].first >= s:diff[a:d1].last
+  \  s:diff[a:d2].first >= s:diff[a:d1].last)
     call s:print_error('overlap')
     return -1
   endif
