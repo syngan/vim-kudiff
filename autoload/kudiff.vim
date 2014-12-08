@@ -44,15 +44,15 @@ endfunction " }}}
 function! kudiff#update() " {{{
   " 元ファイルが更新されていないか確認する 
   if s:now == []
-    echoerr 'KuDiff: KuDiffDo has not been executed'
-    return
+    call s:print_error('KuDiff: KuDiffDo has not been executed')
+    return -1
   endif
   for n in s:now
     let d = s:diff[n]
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
-      echoerr printf('KuDiff: original buffere is updated.', 0)
-      return
+      call s:print_error('KuDiff: original buffere is updated.')
+      return -1
     endif
   endfor
 
@@ -71,21 +71,23 @@ function! kudiff#update() " {{{
       call setreg('"', regbak[0], regbak[1])
     endtry
   endfor
+
+  return 0
 endfunction " }}}
 
 function! kudiff#do(d1, d2) " {{{
   for x in [[a:d1, 1], [a:d2, 2]]
     if !has_key(s:diff, x[0])
       if x[0] == x[1]
-        echoerr printf('KuDiff: KuDiff%d has not been executed', x[0])
+        call s:print_error(printf('KuDiff: KuDiff%d has not been executed', x[0]))
       else
-        echoerr printf('KuDiff: %s has not been saved', string(x[0]))
+        call s:print_error(printf('KuDiff: %s has not been saved', string(x[0])))
       endif
-      return
+      return -1
     endif
   endfor
   if s:diff[a:d1].bufnr != s:diff[a:d2].bufnr
-    echoerr printf('KuDiff: :vimdiff should be used', 0)
+    call s:print_error('KuDiff: :vimdiff should be used')
     return
   endif
   " ku に重複があるときは未対応
@@ -93,13 +95,13 @@ function! kudiff#do(d1, d2) " {{{
   \  s:diff[a:d2].first <= s:diff[a:d1].last ||
   \  s:diff[a:d1].first >= s:diff[a:d2].last &&
   \  s:diff[a:d2].first >= s:diff[a:d1].last
-    echoerr printf('KuDiff: overlap', 0)
-    return
+    call s:print_error('KuDiff: overlap')
+    return -1
   endif
 
   if s:now != []
-    echoerr printf('KuDiff: executing: call kudiff#clear()', 0)
-    return
+    call s:print_error('KuDiff: executing: call kudiff#clear()')
+    return -1
   endif
 
   let s:now = [a:d1, a:d2]
@@ -118,6 +120,8 @@ function! kudiff#do(d1, d2) " {{{
     let b:kudiff_id = d
     setlocal nomodified
   endfor
+
+  return 0
 endfunction " }}}
 
 let &cpo = s:save_cpo
