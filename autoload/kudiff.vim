@@ -25,7 +25,13 @@ function! kudiff#clear() " {{{
   let s:now = []
 endfunction " }}}
 
-function! kudiff#save(id) range " {{{
+function! kudiff#save(id, force) range " {{{
+  if !a:force && s:now != []
+    call s:print_error('executing: call kudiff#clear()')
+    return -1
+  endif
+
+
   let s = getline(a:firstline, a:lastline)
   let s:diff[a:id] = {
         \ 'first': a:firstline,
@@ -34,6 +40,7 @@ function! kudiff#save(id) range " {{{
         \ 'str': s,
         \ 'lineno': line('$')
         \}
+  return 0
 endfunction " }}}
 
 function! kudiff#do_replace() " {{{
