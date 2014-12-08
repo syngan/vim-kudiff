@@ -41,12 +41,13 @@ function! kudiff#save(id) range " {{{
         \}
 endfunction " }}}
 
-function! kudiff#update() " {{{
-  " 元ファイルが更新されていないか確認する 
+function! kudiff#do_replace() " {{{
   if s:now == []
     call s:print_error('KuDiff: KuDiffDo has not been executed')
     return -1
   endif
+
+  " 元ファイルが更新されていないか確認する
   for n in s:now
     let d = s:diff[n]
     let lines = getbufline(d.bufnr, d.first, d.last)
@@ -57,6 +58,7 @@ function! kudiff#update() " {{{
   endfor
 
   " 実行. 後ろから.
+  " ここでエラーがでたらもうしらんよ.
   for i in (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
     let n = s:now[i]
     let d = s:diff[n]
@@ -72,14 +74,16 @@ function! kudiff#update() " {{{
     endtry
   endfor
 
+  " 更新
+
   return 0
 endfunction " }}}
 
-function! kudiff#do(d1, d2) " {{{
+function! kudiff#show(d1, d2) " {{{
   for x in [[a:d1, 1], [a:d2, 2]]
     if !has_key(s:diff, x[0])
       if x[0] == x[1]
-        call s:print_error(printf('KuDiff: KuDiff%d has not been executed', x[0]))
+        call s:print_error(printf('KuDiff: KuDiffSave%d has not been executed', x[0]))
       else
         call s:print_error(printf('KuDiff: %s has not been saved', string(x[0])))
       endif

@@ -7,11 +7,11 @@ endif
 let s:save_cpo = &cpo
 set cpo&vim
 
-command! -nargs=0 -range KuDiff1 :<line1>,<line2>call kudiff#save(1)
-command! -nargs=0 -range KuDiff2 :<line1>,<line2>call kudiff#save(2)
-command! -nargs=0 KuDiffDo       :call kudiff#do(1, 2)
-command! -nargs=0 KuDiffUpdate   :call kudiff#update()
-command! -nargs=0 KuDiffClear    :call kudiff#clear()
+command! -nargs=0 -range KuDiffSave1 :<line1>,<line2>call kudiff#save(1)
+command! -nargs=0 -range KuDiffSave2 :<line1>,<line2>call kudiff#save(2)
+command! -nargs=0 KuDiffShow         :call kudiff#show(1, 2)
+command! -nargs=0 KuDiffDo           :call kudiff#do_replace()
+command! -nargs=0 KuDiffClear        :call kudiff#clear()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
