@@ -16,6 +16,10 @@ function! s:print_error(msg) " {{{
   echohl None
 endfunction " }}}
 
+function! s:exit() " {{{
+  silent! only!
+endfunction " }}}
+
 function! kudiff#get() " {{{
   return s:diff
 endfunction " }}}
@@ -30,7 +34,6 @@ function! kudiff#save(id, force) range " {{{
     call s:print_error('executing: call kudiff#clear()')
     return -1
   endif
-
 
   let s = getline(a:firstline, a:lastline)
   let s:diff[a:id] = {
@@ -54,29 +57,45 @@ function! kudiff#do_replace() " {{{
     let d = s:diff[n]
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
-      call s:print_error('original buffere is updated.')
+      if n is 1 || n is 2
+        call s:print_error(printf('original buffere is updated. Do :KuDiffSave%d!', n))
+      else
+        call s:print_error(printf('original buffere is updated. Call kudiff#save(%s, 1)', string(n)))
+      endif
       return -1
     endif
   endfor
 
   " 実行. 後ろから.
   " ここでエラーがでたらもうしらんよ.
-  for i in (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
-    let n = s:now[i]
-    let d = s:diff[n]
-    let lines = getbufline(d.kubufnr, 1, '$')
-    execute printf(':buffer %d', d.bufnr)
-    execute printf(':%d,%ddelete _', d.first, d.last)
-    let regbak = [getreg('"'), getregtype('"')]
-    try
+  tabnew
+  let regbak = [getreg('"'), getregtype('"')]
+  try
+    let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
+    for i in range(2)
+      let n = s:now[ids[i]]
+      let d = s:diff[n]
+      let lines = getbufline(d.kubufnr, 1, '$')
+      execute printf(':buffer %d', d.bufnr)
+      execute printf(':%d,%ddelete _', d.first, d.last)
       call setreg('"', lines, 'V')
       call s:knormal(printf('%dGP', d.first))
-    finally
-      call setreg('"', regbak[0], regbak[1])
-    endtry
-  endfor
 
-  " 更新
+      " update
+      let df = d.first + len(lines) - 1 - d.last
+      let d.last = d.first + len(lines) - 1
+      if i == 1
+        let s:diff[s:now[ids[0]]].first += df
+        let s:diff[s:now[ids[0]]].last += df
+      endif
+      execute printf(':buffer %d', d.kubufnr)
+      setlocal nomodified
+    endfor
+  finally
+    call setreg('"', regbak[0], regbak[1])
+    :quit
+  endtry
+
 
   return 0
 endfunction " }}}
@@ -118,12 +137,15 @@ function! kudiff#show(d1, d2) " {{{
     else
       leftabove vnew
     endif
+    let fname = printf('[kudiff%d: %s]', i+1, bufname(s:diff[d].bufnr))
+    edit `=fname`
 
     call setline(1, s:diff[d]["str"])
     diffthis
     let s:diff[d].kubufnr = bufnr('%')
     setlocal noswapfile bufhidden=hide
-    autocmd BufWriteCmd <buffer> nested call kudiff#update()
+    autocmd BufWriteCmd <buffer> nested call kudiff#do_replace()
+    autocmd QuitPre <buffer> call s:exit()
     let b:kudiff_id = d
     setlocal nomodified
   endfor
