@@ -3,9 +3,6 @@ scriptencoding utf-8
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:diff = {}
-let s:now = []
-
 function! s:fname(i, bufopen) " {{{
   let d = s:diff[s:now[a:i]]
   if a:bufopen
@@ -14,6 +11,7 @@ function! s:fname(i, bufopen) " {{{
   let fname = printf('[KD%d: %d,%d,%s]', a:i+1, d.first, d.last, bufname(d.bufnr))
   :f `=fname`
   if a:bufopen
+    setlocal nomodified
     diffthis
   endif
 endfunction " }}}
@@ -29,6 +27,7 @@ function! s:print_error(msg) " {{{
 endfunction " }}}
 
 function! s:exit() " {{{
+  " KuDiffDo 後に split していたりしていても全部閉じる仕様
   call kudiff#clear()
   silent! only!
 endfunction " }}}
@@ -68,7 +67,7 @@ function! kudiff#do_replace() " {{{
   " 元ファイルが更新されていないか確認する
   for n in s:now
     let d = s:diff[n]
-    if !bufexist(d.bufnr)
+    if !bufexists(d.bufnr)
       call s:print_error(printf('original buffer does not exist.', n))
       return -1
     endif
@@ -108,19 +107,23 @@ function! kudiff#do_replace() " {{{
         let s:diff[s:now[ids[0]]].first += df
         let s:diff[s:now[ids[0]]].last += df
       endif
-      execute printf(':buffer %d', d.kubufnr)
-      setlocal nomodified
     endfor
+
+    diffoff!
+    for i in range(2)
+      call s:fname(i, 1)
+    endfor
+
+    " QuitPre からの clear 呼び出し回避のため
+    let n = s:now[0]
+    let d = s:diff[n]
+    execute printf(':buffer %d', d.bufnr)
   finally
     call setreg('"', regbak[0], regbak[1])
     :quit
     call setpos('.', posbak)
   endtry
 
-  diffoff!
-  for i in range(2)
-    call s:fname(i, 1)
-  endfor
 
   return 0
 endfunction " }}}
@@ -148,7 +151,7 @@ function! kudiff#show(d1, d2) " {{{
   endif
 
   if s:now != []
-    call s:print_error('executing: call kudiff#clear()')
+    call s:print_error('executing: KuDiffClear')
     return -1
   endif
 
@@ -174,6 +177,8 @@ function! kudiff#show(d1, d2) " {{{
 
   return 0
 endfunction " }}}
+
+call kudiff#clear()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
