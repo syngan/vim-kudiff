@@ -6,6 +6,18 @@ set cpo&vim
 let s:diff = {}
 let s:now = []
 
+function! s:fname(i, bufopen) " {{{
+  let d = s:diff[s:now[a:i]]
+  if a:bufopen
+    execute printf(':buffer %d', d.kubufnr)
+  endif
+  let fname = printf('[KD%d: %d,%d,%s]', a:i+1, d.first, d.last, bufname(d.bufnr))
+  :f `=fname`
+  if a:bufopen
+    diffthis
+  endif
+endfunction " }}}
+
 function! s:knormal(s) " {{{
   execute 'keepjumps' 'silent' 'normal!' a:s
 endfunction " }}}
@@ -55,12 +67,16 @@ function! kudiff#do_replace() " {{{
   " 元ファイルが更新されていないか確認する
   for n in s:now
     let d = s:diff[n]
+    if !bufexist(d.bufnr)
+      call s:print_error(printf('original buffer does not exist.', n))
+      return -1
+    endif
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
       if n is 1 || n is 2
-        call s:print_error(printf('original buffere is updated. Do :KuDiffSave%d!', n))
+        call s:print_error(printf('original buffer is updated. Do :KuDiffSave%d!', n))
       else
-        call s:print_error(printf('original buffere is updated. Call kudiff#save(%s, 1)', string(n)))
+        call s:print_error(printf('original buffer is updated. Call kudiff#save(%s, 1)', string(n)))
       endif
       return -1
     endif
@@ -84,6 +100,7 @@ function! kudiff#do_replace() " {{{
       " update
       let df = d.first + len(lines) - 1 - d.last
       let d.last = d.first + len(lines) - 1
+      let d.str = lines
       if i == 1
         let s:diff[s:now[ids[0]]].first += df
         let s:diff[s:now[ids[0]]].last += df
@@ -96,6 +113,10 @@ function! kudiff#do_replace() " {{{
     :quit
   endtry
 
+  diffoff!
+  for i in range(2)
+    call s:fname(i, 1)
+  endfor
 
   return 0
 endfunction " }}}
@@ -137,8 +158,7 @@ function! kudiff#show(d1, d2) " {{{
     else
       leftabove vnew
     endif
-    let fname = printf('[kudiff%d: %s]', i+1, bufname(s:diff[d].bufnr))
-    edit `=fname`
+    call s:fname(i, 0)
 
     call setline(1, s:diff[d]["str"])
     diffthis
