@@ -28,7 +28,7 @@ endfunction " }}}
 
 function! s:exit() abort " {{{
   " KuDiffDo 後に split していたりしていても全部閉じる仕様
-  only!
+  only
   call kudiff#clear()
 endfunction " }}}
 
@@ -94,10 +94,6 @@ function! kudiff#do_replace() " {{{
     for i in range(2)
       let n = s:now[ids[i]]
       let d = s:diff[n]
-      if !bufexists(d.kubufnr)
-        let closed += 1
-        continue
-      endif
       let lines = getbufline(d.kubufnr, 1, '$')
       execute printf(':buffer %d', d.bufnr)
       execute printf(':%d,%ddelete _', d.first, d.last)
@@ -176,7 +172,7 @@ function! kudiff#show(d1, d2) " {{{
     call setline(1, s:diff[d]["str"])
     diffthis
     let s:diff[d].kubufnr = bufnr('%')
-    setlocal noswapfile bufhidden=hide
+    setlocal noswapfile
     autocmd BufWriteCmd <buffer> nested call kudiff#do_replace()
     autocmd QuitPre <buffer> call s:exit()
     let b:kudiff_id = d
