@@ -12,13 +12,8 @@ endfunction " }}}
 
 function! s:print_error(msg) " {{{
   echohl ErrorMsg
-  try
-    for m in split(a:msg, "\n")
-      echomsg m
-    endfor
-  finally
-    echohl None
-  endtry
+  echomsg 'KuDiff: ' . a:msg
+  echohl None
 endfunction " }}}
 
 function! kudiff#get() " {{{
@@ -43,7 +38,7 @@ endfunction " }}}
 
 function! kudiff#do_replace() " {{{
   if s:now == []
-    call s:print_error('KuDiff: KuDiffDo has not been executed')
+    call s:print_error('KuDiffDo has not been executed')
     return -1
   endif
 
@@ -52,7 +47,7 @@ function! kudiff#do_replace() " {{{
     let d = s:diff[n]
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
-      call s:print_error('KuDiff: original buffere is updated.')
+      call s:print_error('original buffere is updated.')
       return -1
     endif
   endfor
@@ -83,15 +78,15 @@ function! kudiff#show(d1, d2) " {{{
   for x in [[a:d1, 1], [a:d2, 2]]
     if !has_key(s:diff, x[0])
       if x[0] == x[1]
-        call s:print_error(printf('KuDiff: KuDiffSave%d has not been executed', x[0]))
+        call s:print_error(printf('KuDiffSave%d has not been executed', x[0]))
       else
-        call s:print_error(printf('KuDiff: %s has not been saved', string(x[0])))
+        call s:print_error(printf('%s has not been saved', string(x[0])))
       endif
       return -1
     endif
   endfor
   if s:diff[a:d1].bufnr != s:diff[a:d2].bufnr
-    call s:print_error('KuDiff: :vimdiff should be used')
+    call s:print_error(':vimdiff should be used')
     return
   endif
   " ku に重複があるときは未対応
@@ -99,12 +94,12 @@ function! kudiff#show(d1, d2) " {{{
   \  s:diff[a:d2].first <= s:diff[a:d1].last ||
   \  s:diff[a:d1].first >= s:diff[a:d2].last &&
   \  s:diff[a:d2].first >= s:diff[a:d1].last
-    call s:print_error('KuDiff: overlap')
+    call s:print_error('overlap')
     return -1
   endif
 
   if s:now != []
-    call s:print_error('KuDiff: executing: call kudiff#clear()')
+    call s:print_error('executing: call kudiff#clear()')
     return -1
   endif
 
@@ -121,6 +116,7 @@ function! kudiff#show(d1, d2) " {{{
     diffthis
     let s:diff[d].kubufnr = bufnr('%')
     setlocal noswapfile bufhidden=hide
+    autocmd BufWriteCmd <buffer> nested call kudiff#update()
     let b:kudiff_id = d
     setlocal nomodified
   endfor
