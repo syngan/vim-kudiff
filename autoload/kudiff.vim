@@ -26,10 +26,10 @@ function! s:print_error(msg) " {{{
   echohl None
 endfunction " }}}
 
-function! s:exit() " {{{
+function! s:exit() abort " {{{
   " KuDiffDo 後に split していたりしていても全部閉じる仕様
+  only!
   call kudiff#clear()
-  silent! only!
 endfunction " }}}
 
 function! kudiff#get() " {{{
@@ -88,11 +88,16 @@ function! kudiff#do_replace() " {{{
   let regbak = [getreg('"'), getregtype('"')]
   let posbak = getpos('.')
   tabnew
+  let closed = 0
   try
     let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
     for i in range(2)
       let n = s:now[ids[i]]
       let d = s:diff[n]
+      if !bufexists(d.kubufnr)
+        let closed += 1
+        continue
+      endif
       let lines = getbufline(d.kubufnr, 1, '$')
       execute printf(':buffer %d', d.bufnr)
       execute printf(':%d,%ddelete _', d.first, d.last)
@@ -119,11 +124,14 @@ function! kudiff#do_replace() " {{{
     let d = s:diff[n]
     execute printf(':buffer %d', d.bufnr)
   finally
+    if closed < 2
+      diffo!
+    endif
+
     call setreg('"', regbak[0], regbak[1])
     :quit
     call setpos('.', posbak)
   endtry
-
 
   return 0
 endfunction " }}}
