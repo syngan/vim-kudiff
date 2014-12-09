@@ -8,8 +8,13 @@ function! s:fname(i, bufopen) " {{{
   if a:bufopen
     execute printf(':buffer %d', d.kubufnr)
   endif
+
+  " from the specification of KuDiff,
+  " bufname of save1 is always different from that of save2
   let fname = printf('[KD%d: %d,%d,%s]', a:i+1, d.first, d.last, bufname(d.bufnr))
-  :f `=fname`
+  if bufname(fname) != ""
+    :f `=fname`
+  endif
   if a:bufopen
     setlocal nomodified
     diffthis
@@ -27,7 +32,9 @@ function! s:print_error(msg) " {{{
 endfunction " }}}
 
 function! s:exit() abort " {{{
-  " KuDiffDo 後に split していたりしていても全部閉じる仕様
+  " @TODO Even if a buffer is splitted after :KuDiffShow,
+  " all the buffers will be closed.
+
   only!
   call kudiff#clear()
 endfunction " }}}
@@ -60,15 +67,15 @@ endfunction " }}}
 
 function! kudiff#do_replace() " {{{
   if s:now == []
-    call s:print_error('KuDiffShow has not been executed')
+    call s:print_error(':KuDiffShow has not been executed')
     return -1
   endif
 
-  " 元ファイルが更新されていないか確認する
+  " check whether original buffer is updated
   for n in s:now
     let d = s:diff[n]
     if !bufexists(d.bufnr)
-      call s:print_error(printf('original buffer does not exist.', n))
+      call s:print_error('original buffer does not exist.')
       return -1
     endif
     let lines = getbufline(d.bufnr, d.first, d.last)
@@ -84,7 +91,6 @@ function! kudiff#do_replace() " {{{
 
   " 実行. 後ろから.
   " ここでエラーがでたらもうしらんよ.
-  "
   let regbak = [getreg('"'), getregtype('"')]
   let posbak = getpos('.')
   tabnew
@@ -123,7 +129,7 @@ function! kudiff#do_replace() " {{{
       call s:fname(i, 1)
     endfor
 
-    " QuitPre からの clear 呼び出し回避のため
+    " avoid to call kudiff#clear from 'autocmd QuitPre'
     let n = s:now[0]
     let d = s:diff[n]
     execute printf(':buffer %d', d.bufnr)
@@ -180,7 +186,7 @@ function! kudiff#show(d1, d2) " {{{
     call setline(1, s:diff[d]["str"])
     diffthis
     let s:diff[d].kubufnr = bufnr('%')
-    setlocal noswapfile bufhidden=hide
+    setlocal noswapfile bufhidden=delete
     autocmd BufWriteCmd <buffer> nested call kudiff#do_replace()
     autocmd QuitPre <buffer> call s:exit()
     let b:kudiff_id = d
