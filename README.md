@@ -3,8 +3,7 @@ vim-kudiff
 
 Difference between two blocks
 
-
-![demo](https://cloud.githubusercontent.com/assets/2537863/5346874/7d11bb34-7f67-11e4-90e6-5d606747fe79.gif)
+![demo](https://cloud.githubusercontent.com/assets/2537863/5350800/90aec22e-7f8d-11e4-845a-a82375daafa4.gif)
 
 - KuDiffSave1
 - KuDiffSave2
