@@ -33,7 +33,7 @@ function! s:exit() abort " {{{
 endfunction " }}}
 
 function! kudiff#get() " {{{
-  return s:diff
+  return [s:diff, s:now]
 endfunction " }}}
 
 function! kudiff#clear() " {{{
@@ -60,7 +60,7 @@ endfunction " }}}
 
 function! kudiff#do_replace() " {{{
   if s:now == []
-    call s:print_error('KuDiffDo has not been executed')
+    call s:print_error('KuDiffShow has not been executed')
     return -1
   endif
 
@@ -74,7 +74,7 @@ function! kudiff#do_replace() " {{{
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
       if n is 1 || n is 2
-        call s:print_error(printf('original buffer is updated. Do :KuDiffSave%d!', n))
+        call s:print_error(printf('original buffer is updated. Select range and do :KuDiffSave%d!', n))
       else
         call s:print_error(printf('original buffer is updated. Call kudiff#save(%s, 1)', string(n)))
       endif
@@ -102,7 +102,11 @@ function! kudiff#do_replace() " {{{
       execute printf(':buffer %d', d.bufnr)
       execute printf(':%d,%ddelete _', d.first, d.last)
       call setreg('"', lines, 'V')
-      call s:knormal(printf('%dGP', d.first))
+      if d.first < line('$')
+        call s:knormal(printf('%dGP', d.first))
+      else
+        call s:knormal(printf('%dGp', d.first))
+      endif
 
       " update
       let df = d.first + len(lines) - 1 - d.last
@@ -144,7 +148,7 @@ function! kudiff#show(d1, d2) " {{{
       else
         call s:print_error(printf('%s has not been saved', string(x[0])))
       endif
-      return -1
+      return []
     endif
   endfor
 
@@ -155,12 +159,12 @@ function! kudiff#show(d1, d2) " {{{
   \  s:diff[a:d1].first >= s:diff[a:d2].last &&
   \  s:diff[a:d2].first >= s:diff[a:d1].last)
     call s:print_error('overlap')
-    return -1
+    return []
   endif
 
   if s:now != []
     call s:print_error('executing: KuDiffClear')
-    return -1
+    return []
   endif
 
   let s:now = [a:d1, a:d2]
@@ -183,7 +187,7 @@ function! kudiff#show(d1, d2) " {{{
     setlocal nomodified
   endfor
 
-  return 0
+  return map(copy(s:now), 's:diff[v:val].kubufnr')
 endfunction " }}}
 
 call kudiff#clear()
