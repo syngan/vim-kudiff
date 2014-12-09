@@ -65,10 +65,10 @@ function! kudiff#save(id, force) range " {{{
   return 0
 endfunction " }}}
 
-function! kudiff#do_replace() " {{{
+function! s:do_rep_chk() " {{{
   if s:now == []
     call s:print_error(':KuDiffShow has not been executed')
-    return -1
+    return 0
   endif
 
   " check whether original buffer is updated
@@ -76,7 +76,7 @@ function! kudiff#do_replace() " {{{
     let d = s:diff[n]
     if !bufexists(d.bufnr)
       call s:print_error('original buffer does not exist.')
-      return -1
+      return 0
     endif
     let lines = getbufline(d.bufnr, d.first, d.last)
     if lines != d.str
@@ -85,9 +85,18 @@ function! kudiff#do_replace() " {{{
       else
         call s:print_error(printf('original buffer is updated. Call kudiff#save(%s, 1)', string(n)))
       endif
-      return -1
+      return 0
     endif
   endfor
+
+  return 1
+endfunction " }}}
+
+function! kudiff#do_replace() " {{{
+
+  if !s:do_rep_chk()
+    return -1
+  endif
 
   " 実行. 後ろから.
   " ここでエラーがでたらもうしらんよ.
@@ -146,7 +155,7 @@ function! kudiff#do_replace() " {{{
   return 0
 endfunction " }}}
 
-function! kudiff#show(d1, d2) " {{{
+function! s:show_chk(d1, d2) " {{{
   for x in [[a:d1, 1], [a:d2, 2]]
     if !has_key(s:diff, x[0])
       if x[0] == x[1]
@@ -154,7 +163,7 @@ function! kudiff#show(d1, d2) " {{{
       else
         call s:print_error(printf('%s has not been saved', string(x[0])))
       endif
-      return []
+      return 0
     endif
   endfor
 
@@ -165,11 +174,20 @@ function! kudiff#show(d1, d2) " {{{
   \  s:diff[a:d1].first >= s:diff[a:d2].last &&
   \  s:diff[a:d2].first >= s:diff[a:d1].last)
     call s:print_error('overlap')
-    return []
+    return 0
   endif
 
   if s:now != []
     call s:print_error('executing: KuDiffClear')
+    return 0
+  endif
+
+  return 1
+endfunction " }}}
+
+function! kudiff#show(d1, d2) " {{{
+
+  if !s:show_chk(a:d1, a:d2)
     return []
   endif
 
