@@ -43,6 +43,8 @@ endfunction
 function! s:prepare(idx)
   execute printf("1,%dKuDiffSave1", s:p1e+1)
   execute printf("%d,$KuDiffSave2", s:p2s+1)
+  call s:assert.equals(line('$'), 9, string(kudiff#get()))
+
   let s:bufs = kudiff#show(1, 2)
   call s:assert.not_equals(s:bufs, []) 
 
@@ -53,9 +55,9 @@ function! s:prepare(idx)
       endwhile
       call writefile(getline(1, line('$')), printf("/tmp/hoge%d", i))
       if i == 0
-        call s:assert.equals(getline(1, line('$')), s:lines[0: 3])
+        call s:assert.equals(getline(1, line('$')), s:lines[0:  3], "s:prepare(): save0")
       else
-        call s:assert.equals(getline(1, line('$')), s:lines[5: -1])
+        call s:assert.equals(getline(1, line('$')), s:lines[5: -1], "s:prepare(): save1")
       endif
     endfor
   endif
