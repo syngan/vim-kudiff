@@ -58,7 +58,6 @@ function! kudiff#save(id, force) range " {{{
         \ 'last': a:lastline,
         \ 'bufnr': bufnr('%'),
         \ 'str': s,
-        \ 'lineno': line('$')
         \}
   return 0
 endfunction " }}}

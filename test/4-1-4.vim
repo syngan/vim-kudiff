@@ -42,7 +42,7 @@ endfunction
 
 function! s:prepare(idx)
   execute printf("1,%dKuDiffSave1", s:p1e+1)
-  execute printf("%d,$KuDiffSave2", s:p2s+1)
+  execute printf("%d,%dKuDiffSave2", s:p2s+1, s:p2s+4)
   call s:assert.equals(line('$'), 9, string(kudiff#get()))
   call s:assert.equals(kudiff#get()[0][1].first, 1, "1.first" . string(kudiff#get()))
   call s:assert.equals(kudiff#get()[0][1].last, 4, "1.last" . string(kudiff#get()))
