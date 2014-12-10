@@ -10,15 +10,15 @@ let s:debug = 1
 
 function! s:suite.before()
   let s:lines = [
-        \ "1234567890",
-        \ "aaaaaaaaaaa",
-        \ "bbbbbbbbbb",
-        \ "cccccccccc",
-        \ "dddddddddd",
-        \ "eeeeeeeeee",
-        \ "ffffffffff",
-        \ "gggggggggg",
-        \ "zzzzzzzzzzzzzzzz",
+        \ "0234567890",
+        \ "0aaaaaaaaaa",
+        \ "0bbbbbbbbb",
+        \ "0ccccccccc",
+        \ "xddddddddd",
+        \ "1eeeeeeeee",
+        \ "1fffffffff",
+        \ "1ggggggggg",
+        \ "1zzzzzzzzzzzzzzz",
         \]
   let s:p1e = 3
   let s:pxs = 4
@@ -76,12 +76,8 @@ function! s:quit()
 endfunction
 
 function! s:check(list)
-  call s:assert.equals(a:list, getline(1, line('$')))
-  call s:assert.equals(len(a:list), line('$'))
-
-  for i in range(len(a:list))
-    call s:assert.equals(getline(i+1), a:list[i])
-  endfor
+  call s:assert.equals(getline(1, line('$')), a:list, "s:check(): whole")
+  call s:assert.equals(line('$'), len(a:list), "s:check(): len")
 endfunction
 
 function! s:suite.topa0()
@@ -146,6 +142,8 @@ function! s:suite.vanish1()
   call s:prepare(1)
 
   :%delete _
+  call s:assert.equals(len('$'), 1, "len")
+  call s:assert.equals(getline(1), '', "val1")
   :w
   call s:quit()
   let list = s:lines[: s:pxe] + [""]
