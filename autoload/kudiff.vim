@@ -96,7 +96,6 @@ function! kudiff#do_replace() " {{{
     return -1
   endif
 
-  let regbak = [getreg('"'), getregtype('"')]
   :tabnew
   try
     " 実行. 後ろから.
@@ -114,8 +113,7 @@ function! kudiff#do_replace() " {{{
       endif
       execute printf(':buffer %d', d.bufnr)
       execute printf(':%d,%ddelete _', d.first, d.last)
-      call setreg('"', lines, 'V')
-      call s:knormal(printf('%dG%s', d.first, (d.first < line('$') ? 'P' : 'p')))
+      call append(d.first - 1, lines)
 
       " update
       let df = d.first + len(lines) - 1 - d.last
@@ -135,7 +133,6 @@ function! kudiff#do_replace() " {{{
     " avoid to call kudiff#clear from 'autocmd QuitPre'
     execute printf(':buffer %d', ids[0].bufnr)
   finally
-    call setreg('"', regbak[0], regbak[1])
     :quit
   endtry
 
