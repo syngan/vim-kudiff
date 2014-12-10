@@ -10,15 +10,15 @@ let s:debug = 1
 
 function! s:suite.before()
   let s:lines = [
-        \ "0234567890",
-        \ "0aaaaaaaaaa",
-        \ "0bbbbbbbbb",
-        \ "0ccccccccc",
-        \ "xddddddddd",
-        \ "1eeeeeeeee",
-        \ "1fffffffff",
-        \ "1ggggggggg",
-        \ "1zzzzzzzzzzzzzzz",
+        \ "01234567890",
+        \ "02aaaaaaaaaa",
+        \ "03bbbbbbbbb",
+        \ "04ccccccccc",
+        \ "x1ddddddddd",
+        \ "11eeeeeeeee",
+        \ "12fffffffff",
+        \ "13ggggggggg",
+        \ "14zzzzzzzzzzzzzzz",
         \]
   let s:p1e = 3
   let s:pxs = 4
@@ -52,6 +52,11 @@ function! s:prepare(idx)
         execute 'normal!' "\<C-w>w"
       endwhile
       call writefile(getline(1, line('$')), printf("/tmp/hoge%d", i))
+      if i == 0
+        call s:assert.equals(getline(1, line('$')), s:lines[0: 3])
+      else
+        call s:assert.equals(getline(1, line('$')), s:lines[5: -1])
+      endif
     endfor
   endif
 
