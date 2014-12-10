@@ -149,6 +149,9 @@ function! s:suite.vanish1()
   :w
   call s:quit()
   let list = s:lines[: s:pxe] + [""]
+
+  call s:assert.equals(s:lines[0 : s:pxe], s:lines[: s:pxe], "pxe")
+  call s:assert.equals(list[-1], "", "list[-1]")
   call s:check(list)
 endfunction
 
