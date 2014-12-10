@@ -190,7 +190,10 @@ function! kudiff#show(d1, d2) " {{{
     let s:diff[d].kubufnr = bufnr('%')
     setlocal noswapfile bufhidden=delete
     autocmd BufWriteCmd <buffer> nested call kudiff#do_replace()
-    autocmd QuitPre <buffer> call s:exit()
+    if v:version > 703 || (v:version == 703 && has('patch544'))
+      " QuitPre was added in Vim 7.3.544
+      autocmd QuitPre <buffer> call s:exit()
+    endif
     let b:kudiff_id = d
     setlocal nomodified
   endfor
