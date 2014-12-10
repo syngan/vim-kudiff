@@ -72,7 +72,9 @@ function! s:quit()
 endfunction
 
 function! s:check(list)
+  call s:assert.equals(a:list, getline(1, line('$')))
   call s:assert.equals(len(a:list), line('$'))
+
   for i in range(len(a:list))
     call s:assert.equals(getline(i+1), a:list[i])
   endfor
