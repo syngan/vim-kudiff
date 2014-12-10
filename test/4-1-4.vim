@@ -25,8 +25,7 @@ function! s:suite.before_each()
   let s:pxs = 4
   let s:pxe = 4
   let s:p2s = 5
-  call setreg('"', s:lines)
-  put
+  call append(1, s:lines)
   1 delete _
   if s:debug
     call writefile(s:lines, "/tmp/hogeorg")
