@@ -1,6 +1,8 @@
 vim-kudiff
 ==========
 
+[![Build Status](https://travis-ci.org/syngan/vim-kudiff.svg?branch=master)](https://travis-ci.org/syngan/vim-kudiff)
+
 Difference between two blocks
 
 ![demo](https://cloud.githubusercontent.com/assets/2537863/5350800/90aec22e-7f8d-11e4-845a-a82375daafa4.gif)
