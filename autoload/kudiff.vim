@@ -96,38 +96,34 @@ function! kudiff#do_replace() " {{{
     return -1
   endif
 
-  " 実行. 後ろから.
-  " ここでエラーがでたらもうしらんよ.
   let regbak = [getreg('"'), getregtype('"')]
-  let posbak = getpos('.')
-  tabnew
-  let closed = 0
+  :tabnew
   try
-    let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].first? [1,0] : [0,1])
+    " 実行. 後ろから.
+    " ここでエラーがでたらもうしらんよ.
+    let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].first ? [1,0] : [0,1])
+    let ids = map(ids, 's:diff[s:now[v:val]]')
     for i in range(2)
-      let n = s:now[ids[i]]
-      let d = s:diff[n]
+      let d = ids[i]
       if !bufexists(d.kubufnr)
-        let closed += 1
         continue
       endif
       let lines = getbufline(d.kubufnr, 1, '$')
+      if d.str == lines
+        continue
+      endif
       execute printf(':buffer %d', d.bufnr)
       execute printf(':%d,%ddelete _', d.first, d.last)
       call setreg('"', lines, 'V')
-      if d.first < line('$')
-        call s:knormal(printf('%dGP', d.first))
-      else
-        call s:knormal(printf('%dGp', d.first))
-      endif
+      call s:knormal(printf('%dG%s', d.first, (d.first < line('$') ? 'P' : 'p')))
 
       " update
       let df = d.first + len(lines) - 1 - d.last
       let d.last = d.first + len(lines) - 1
       let d.str = lines
-      if i == 1 && s:diff[s:now[0]].bufnr == s:diff[s:now[1]].bufnr
-        let s:diff[s:now[ids[0]]].first += df
-        let s:diff[s:now[ids[0]]].last += df
+      if i == 1 && ids[0].bufnr == ids[1].bufnr
+        let ids[0].first += df
+        let ids[0].last += df
       endif
     endfor
 
@@ -137,17 +133,10 @@ function! kudiff#do_replace() " {{{
     endfor
 
     " avoid to call kudiff#clear from 'autocmd QuitPre'
-    let n = s:now[0]
-    let d = s:diff[n]
-    execute printf(':buffer %d', d.bufnr)
+    execute printf(':buffer %d', ids[0].bufnr)
   finally
-    if closed < 2
-      diffo!
-    endif
-
     call setreg('"', regbak[0], regbak[1])
     :quit
-    call setpos('.', posbak)
   endtry
 
   return 0
