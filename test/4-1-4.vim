@@ -141,12 +141,15 @@ endfunction
 function! s:suite.vanish1()
   call s:prepare(1)
 
+  call writefile(getline(1, line('$')), "/tmp/hoge-vanish1-0")
   :%delete _
   call s:assert.equals(len('$'), 1, "len")
   call s:assert.equals(getline(1), '', "val1")
+  call writefile(getline(1, line('$')), "/tmp/hoge-vanish1-1")
   :w
   call s:quit()
   let list = s:lines[: s:pxe] + [""]
+  call writefile(getline(1, line('$')), "/tmp/hoge-vanish1-2")
 
   call s:assert.equals(s:lines[0 : s:pxe], s:lines[: s:pxe], "pxe")
   call s:assert.equals(list[-1], "", "list[-1]")
