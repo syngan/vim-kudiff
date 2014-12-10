@@ -12,9 +12,7 @@ function! s:fname(i, bufopen) " {{{
   " from the specification of KuDiff,
   " bufname of save1 is always different from that of save2
   let fname = printf('[KD%d: %d,%d,%s]', a:i+1, d.first, d.last, bufname(d.bufnr))
-  if bufname(fname) != ""
-    :f `=fname`
-  endif
+  :f `=fname`
   if a:bufopen
     setlocal nomodified
     diffthis
@@ -105,7 +103,7 @@ function! kudiff#do_replace() " {{{
   tabnew
   let closed = 0
   try
-    let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].last ? [1,0] : [0,1])
+    let ids = (s:diff[s:now[0]].first < s:diff[s:now[1]].first? [1,0] : [0,1])
     for i in range(2)
       let n = s:now[ids[i]]
       let d = s:diff[n]
