@@ -42,7 +42,7 @@ endfunction
 
 function! s:prepare(idx)
   execute printf("1,%dKuDiffSave1", s:p1e+1)
-  execute printf("%d,%dKuDiffSave2", s:p2s+1, s:p2s+4)
+  execute printf("%d,KuDiffSave2", s:p2s+1)
 
 "  execute printf("%d,$KuDiffSave2", s:p2s+1)
 "  travis でなぜか動作しない. vim4-537
