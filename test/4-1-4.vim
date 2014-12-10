@@ -6,7 +6,7 @@ set cpo&vim
 let s:suite = themis#suite('4-1-4')
 let s:assert = themis#helper('assert')
 
-let s:debug = 0
+let s:debug = 1
 
 function! s:suite.before()
   let s:lines = [

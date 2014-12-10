@@ -12,5 +12,10 @@ before_script:
 script:
     - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser plugin autoload
     - /tmp/vim-themis/bin/themis
+    - /tmp/vim-themis/bin/themis --target vanish1
+    - cat /tmp/hoge
+    - cat /tmp/hoge0
+    - cat /tmp/hoge1
+    - cat /tmp/hogeorg
 
 
