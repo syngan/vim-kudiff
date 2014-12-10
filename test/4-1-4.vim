@@ -8,8 +8,7 @@ let s:assert = themis#helper('assert')
 
 let s:debug = 0
 
-function! s:suite.before_each()
-  new
+function! s:suite.before()
   let s:lines = [
         \ "1234567890",
         \ "aaaaaaaaaaa",
@@ -25,6 +24,11 @@ function! s:suite.before_each()
   let s:pxs = 4
   let s:pxe = 4
   let s:p2s = 5
+  lockvar s:lines
+endfunction
+
+function! s:suite.before_each()
+  new
   call append(1, s:lines)
   1 delete _
   if s:debug
